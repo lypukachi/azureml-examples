@@ -1,0 +1,34 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.8'
+- script: pip install -r sdk/dev-requirements.txt
+  displayName: 'pip install notebook reqs'
+- task: Bash@3
+  inputs:
+    filePath: 'sdk/setup.sh'
+  displayName: 'set up sdk'
+
+- task: Bash@3
+  inputs:
+    filePath: 'cli/setup.sh'
+  displayName: 'set up CLI'
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'your-azure-subscription'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+           sed -i -e "s/<SUBSCRIPTION_ID>/$(SUBSCRIPTION_ID)/g" sklearn-diabetes.ipynb
+           sed -i -e "s/<RESOURCE_GROUP>/$(RESOURCE_GROUP)/g" sklearn-diabetes.ipynb
+           sed -i -e "s/<AML_WORKSPACE_NAME>/$(AZUREML_WORKSPACE_NAME)/g" sklearn-diabetes.ipynb
+           sed -i -e "s/DefaultAzureCredential/AzureCliCredential/g" sklearn-diabetes.ipynb
+           papermill -k python sklearn-diabetes.ipynb sklearn-diabetes.output.ipynb
+    workingDirectory: 'sdk/jobs/single-step/scikit-learn/diabetes'
