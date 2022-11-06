@@ -22,7 +22,7 @@ steps:
 
 - task: AzureCLI@2
   inputs:
-    azureSubscription: 'Azure subscription 1'
+    azureSubscription: 'machine-learning-connection'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
